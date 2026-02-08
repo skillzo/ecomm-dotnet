@@ -1,6 +1,18 @@
-@ECommerce.Api_HostAddress = http://localhost:5192
+@HostAddress = http://localhost:5192
 
-GET {{ECommerce.Api_HostAddress}}/weatherforecast/
+GET {{HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+POST {{HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+    "items": [
+        {
+            "productId": "24370648-e13a-46d9-994f-123456789012",
+            "quantity": 1,
+          
+        }
+    ]
+}

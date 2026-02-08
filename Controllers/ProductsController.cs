@@ -12,7 +12,7 @@ public class ProductsController : ControllerBase
     private readonly AppDbContext _dbContext;
     private readonly IMapper _mapper;
     private readonly ILogger<ProductsController> _logger;
-   
+
     public ProductsController(AppDbContext dbContext, IMapper mapper, ILogger<ProductsController> logger)
     {
         _dbContext = dbContext;
@@ -21,14 +21,14 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<GetProductResponse>>CreateProduct ([FromBody] CreateProductRequest request)
+    public async Task<ActionResult<GetProductResponse>> CreateProduct([FromBody] CreateProductRequest request)
     {
 
-       var ProductNameExist = await _dbContext.Products.AnyAsync(p => p.Name.ToLower() == request.Name.ToLower());
-       if (ProductNameExist)
-       {
-        return BadRequest(new { error = "Product name already exists" });
-       }
+        var ProductNameExist = await _dbContext.Products.AnyAsync(p => p.Name.ToLower() == request.Name.ToLower());
+        if (ProductNameExist)
+        {
+            return BadRequest(new { error = "Product name already exists" });
+        }
 
         var product = new Product
         {
@@ -66,17 +66,17 @@ public class ProductsController : ControllerBase
 
     [HttpDelete("{id}")]
     public async Task<ActionResult<bool>> DeleteProduct(Guid id)
-    
+
     {
-     var product = await _dbContext.Products.FindAsync(id);
-     if (product == null)
-     {
-        return NotFound(new { error = "Product not found" });
-     }
-     
-     _dbContext.Products.Remove(product);
-     await _dbContext.SaveChangesAsync();
-     return Ok(true);
+        var product = await _dbContext.Products.FindAsync(id);
+        if (product == null)
+        {
+            return NotFound(new { error = "Product not found" });
+        }
+
+        _dbContext.Products.Remove(product);
+        await _dbContext.SaveChangesAsync();
+        return Ok(true);
     }
 
 
@@ -85,7 +85,8 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<GetProductResponse>> UpdateStock(Guid id, [FromBody] UpdateStockRequest request)
     {
         using var transaction = await _dbContext.Database.BeginTransactionAsync();
-        try{
+        try
+        {
             var product = await _dbContext.Products
             .Where(p => p.Id == id)
             .FirstOrDefaultAsync();
@@ -100,11 +101,13 @@ public class ProductsController : ControllerBase
             await transaction.CommitAsync();
             return Ok(_mapper.Map<GetProductResponse>(product));
 
-        }catch(Exception ex){
+        }
+        catch (Exception ex)
+        {
             await transaction.RollbackAsync();
             _logger.LogError(ex, "Failed to update stock");
             return BadRequest(new { error = "Failed to update stock" });
         }
     }
-    
+
 }
