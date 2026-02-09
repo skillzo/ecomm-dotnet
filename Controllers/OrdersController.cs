@@ -90,7 +90,7 @@ public class OrdersController : ControllerBase
             {
                 Id = order.Id,
                 OrderDate = order.OrderDate,
-                Status = order.Status,
+                Status = order.Status.ToString(),
                 TotalPrice = order.OrderItems.Sum(oi => oi.Price * oi.Quantity),
                 OrderItems = order.OrderItems.Select(oi => new GetOrderItemResponse
                 {
@@ -104,7 +104,7 @@ public class OrdersController : ControllerBase
 
 
 
-            return Ok(response);
+            return Ok(new { userId = user.Id, order = response });
         }
         catch (Exception ex)
         {
@@ -112,5 +112,60 @@ public class OrdersController : ControllerBase
             await transaction.RollbackAsync();
             return BadRequest(new { error = "Failed to create order" });
         }
+    }
+
+
+
+    //  get all order (Admin)
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult> GetAllOrder()
+
+    {
+        var orders = await _dbContext.Orders
+        .Select(o => new
+        {
+            o.Id,
+            o.UserId,
+            Status = o.Status.ToString(),
+            o.OrderDate,
+        }).ToListAsync();
+
+        return Ok(orders);
+    }
+
+    // get my order
+    [Authorize(Roles = nameof(UserRole.Customer))]
+    [HttpGet]
+    [Route("my-orders")]
+    public async Task<ActionResult<List<GetOrderResponse>>> GetMyOrders()
+    {
+        var user = await _currentUserService.GetCurrentUserAsync();
+        if (user == null)
+            return BadRequest("User not found");
+
+
+
+        var orders = await _dbContext.Orders
+        .Where(o => o.UserId == user.Id)
+        .Select(o => new GetOrderResponse
+        {
+            Id = o.Id,
+            Status = o.Status.ToString(),
+            OrderDate = o.OrderDate,
+            TotalPrice = o.OrderItems.Sum(oi => oi.Price * oi.Quantity),
+            OrderItems = o.OrderItems.Select(i => new GetOrderItemResponse
+            {
+                Id = i.Id,
+                ProductId = i.ProductId,
+                Quantity = i.Quantity,
+                Price = i.Price
+
+            }).ToList()
+        }).ToListAsync();
+
+
+        return Ok(orders);
+
     }
 }

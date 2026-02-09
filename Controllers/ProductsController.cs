@@ -2,6 +2,7 @@ using AutoMapper;
 using ECommerce.Api.Domain;
 using ECommerce.Api.Dtos.Products;
 using ECommerce.Api.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,7 @@ public class ProductsController : ControllerBase
         _logger = logger;
     }
 
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPost]
     public async Task<ActionResult<GetProductResponse>> CreateProduct([FromBody] CreateProductRequest request)
     {
@@ -41,6 +43,7 @@ public class ProductsController : ControllerBase
         await _dbContext.SaveChangesAsync();
         return Ok(new GetProductResponse { Id = product.Id, Name = product.Name, Description = product.Description, Price = product.Price });
     }
+
 
 
 
@@ -81,6 +84,7 @@ public class ProductsController : ControllerBase
 
 
 
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [HttpPost("{id}/stock")]
     public async Task<ActionResult<GetProductResponse>> UpdateStock(Guid id, [FromBody] UpdateStockRequest request)
     {

@@ -6,8 +6,6 @@ namespace ECommerce.Api.Dtos.Orders;
 
 public class CreateOrderRequest
 {
-    [Required]
-    public required Guid UserId { get; set; }
 
     [Required]
     public required CreateOrderItemsRequest[] Items { get; set; }
@@ -27,6 +25,6 @@ public class GetOrderResponse
     public Guid Id { get; set; }
     public int TotalPrice { get; set; }
     public DateTime OrderDate { get; set; }
-    public OrderStatus Status { get; set; }
+    public string Status { get; set; } = string.Empty;
     public ICollection<GetOrderItemResponse> OrderItems { get; set; } = new List<GetOrderItemResponse>();
 }
