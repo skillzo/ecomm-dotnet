@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ECommerce.Api.Dtos.Auth;
+namespace ECommerce.Api.Application.Dtos.Auth;
 
 public class LoginRequest
 {

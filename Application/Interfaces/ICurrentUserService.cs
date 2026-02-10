@@ -1,5 +1,6 @@
-// Services/ICurrentUserService.cs
 using ECommerce.Api.Domain;
+
+namespace ECommerce.Api.Application.Interfaces;
 
 public interface ICurrentUserService
 {

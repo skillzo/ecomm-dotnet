@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ECommerce.Api.Dtos.User;
+namespace ECommerce.Api.Application.Dtos.User;
 
 
 public class CreateUserRequest

@@ -7,14 +7,17 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ECommerce.Api.Domain;
-using ECommerce.Api.Dtos.Auth;
-using ECommerce.Api.Dtos.User;
+using ECommerce.Api.Application.Dtos.Auth;
+using ECommerce.Api.Application.Dtos.User;
 using ECommerce.Api.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
+namespace ECommerce.Api.Controllers;
+
+[ApiController]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _dbContext;

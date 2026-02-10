@@ -1,4 +1,4 @@
-namespace ECommerce.Api.Dtos.Orders;
+namespace ECommerce.Api.Application.Dtos.Orders;
 
 public class GetOrderItemResponse
 {

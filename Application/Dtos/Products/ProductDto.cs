@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace ECommerce.Api.Dtos.Products;
+namespace ECommerce.Api.Application.Dtos.Products;
 
 
 public class CreateProductRequest
@@ -10,7 +10,7 @@ public class CreateProductRequest
     [Required]
     [MaxLength(1000)]
     public required string Description { get; set; }
-    
+
     [Range(1, 1_000_000)]
     public required int Price { get; set; }
 

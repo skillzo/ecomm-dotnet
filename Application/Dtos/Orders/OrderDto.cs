@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using ECommerce.Api.Domain;
 
-namespace ECommerce.Api.Dtos.Orders;
+namespace ECommerce.Api.Application.Dtos.Orders;
 
 
 public class CreateOrderRequest
@@ -28,3 +28,7 @@ public class GetOrderResponse
     public string Status { get; set; } = string.Empty;
     public ICollection<GetOrderItemResponse> OrderItems { get; set; } = new List<GetOrderItemResponse>();
 }
+
+
+
+

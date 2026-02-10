@@ -1,117 +1,84 @@
-using AutoMapper;
-using ECommerce.Api.Domain;
-using ECommerce.Api.Dtos.Products;
-using ECommerce.Api.Infrastructure.Persistence;
+using ECommerce.Api.Application.Dtos.Products;
+using ECommerce.Api.Application.Interfaces;
+using ECommerce.Api.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
+namespace ECommerce.Api.Controllers;
 
 [ApiController]
 [Route("api/products")]
 public class ProductsController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
-    private readonly IMapper _mapper;
-    private readonly ILogger<ProductsController> _logger;
+    private readonly IProductService _productService;
 
-    public ProductsController(AppDbContext dbContext, IMapper mapper, ILogger<ProductsController> logger)
+    public ProductsController(IProductService productService)
     {
-        _dbContext = dbContext;
-        _mapper = mapper;
-        _logger = logger;
+        _productService = productService;
     }
 
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize(Roles = nameof(Domain.UserRole.Admin))]
     [HttpPost]
-    public async Task<ActionResult<GetProductResponse>> CreateProduct([FromBody] CreateProductRequest request)
+    public async Task<ActionResult<ServiceResponse<GetProductResponse>>> CreateProduct([FromBody] CreateProductRequest request)
     {
-
-        var ProductNameExist = await _dbContext.Products.AnyAsync(p => p.Name.ToLower() == request.Name.ToLower());
-        if (ProductNameExist)
+        var result = await _productService.CreateProductAsync(request);
+        
+        if (!result.Success)
         {
-            return BadRequest(new { error = "Product name already exists" });
+            return StatusCode(result.StatusCode, result);
         }
 
-        var product = new Product
-        {
-            Name = request.Name,
-            Description = request.Description,
-            Price = request.Price
-        };
-
-        await _dbContext.Products.AddAsync(product);
-        await _dbContext.SaveChangesAsync();
-        return Ok(new GetProductResponse { Id = product.Id, Name = product.Name, Description = product.Description, Price = product.Price });
+        return Ok(result);
     }
-
-
-
 
     [HttpGet]
-    public async Task<ActionResult<List<Product>>> GetProducts()
+    public async Task<ActionResult<ServiceResponse<PagedResponse<GetProductResponse>>>> GetProducts(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10)
     {
-        var products = await _dbContext.Products.ToListAsync();
-        return Ok(_mapper.Map<List<GetProductResponse>>(products));
+        var result = await _productService.GetProductsAsync(page, pageSize);
+        return Ok(result);
     }
-
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<GetProductResponse>> GetProduct(Guid id)
+    public async Task<ActionResult<ServiceResponse<GetProductResponse>>> GetProduct(Guid id)
     {
-        var product = await _dbContext.Products.FindAsync(id);
-        if (product == null)
+        var result = await _productService.GetProductByIdAsync(id);
+        
+        if (!result.Success)
         {
-            return NotFound(new { error = "Product not found" });
+            return StatusCode(result.StatusCode, result);
         }
-        return Ok(_mapper.Map<GetProductResponse>(product));
-    }
 
+        return Ok(result);
+    }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<bool>> DeleteProduct(Guid id)
-
+    public async Task<ActionResult<ServiceResponse<bool>>> DeleteProduct(Guid id)
     {
-        var product = await _dbContext.Products.FindAsync(id);
-        if (product == null)
+        var result = await _productService.DeleteProductAsync(id);
+        
+        if (!result.Success)
         {
-            return NotFound(new { error = "Product not found" });
+            return StatusCode(result.StatusCode, result);
         }
 
-        _dbContext.Products.Remove(product);
-        await _dbContext.SaveChangesAsync();
-        return Ok(true);
+        return Ok(result);
     }
 
-
-
-    [Authorize(Roles = nameof(UserRole.Admin))]
+    [Authorize(Roles = nameof(Domain.UserRole.Admin))]
     [HttpPost("{id}/stock")]
-    public async Task<ActionResult<GetProductResponse>> UpdateStock(Guid id, [FromBody] UpdateStockRequest request)
+    public async Task<ActionResult<ServiceResponse<GetProductResponse>>> UpdateStock(
+        Guid id, 
+        [FromBody] UpdateStockRequest request)
     {
-        using var transaction = await _dbContext.Database.BeginTransactionAsync();
-        try
+        var result = await _productService.UpdateStockAsync(id, request);
+        
+        if (!result.Success)
         {
-            var product = await _dbContext.Products
-            .Where(p => p.Id == id)
-            .FirstOrDefaultAsync();
-
-            if (product == null)
-            {
-                return NotFound(new { error = "Product not found" });
-            }
-
-            product.Stock += request.Quantity;
-            await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return Ok(_mapper.Map<GetProductResponse>(product));
-
+            return StatusCode(result.StatusCode, result);
         }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, "Failed to update stock");
-            return BadRequest(new { error = "Failed to update stock" });
-        }
+
+        return Ok(result);
     }
-
 }

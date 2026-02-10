@@ -1,8 +1,10 @@
-// Services/CurrentUserService.cs
 using System.Security.Claims;
+using ECommerce.Api.Application.Interfaces;
 using ECommerce.Api.Domain;
 using ECommerce.Api.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+
+namespace ECommerce.Api.Infrastructure.Services;
 
 public class CurrentUserService : ICurrentUserService
 {

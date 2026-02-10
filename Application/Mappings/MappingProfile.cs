@@ -1,9 +1,9 @@
 using AutoMapper;
+using ECommerce.Api.Application.Dtos.Orders;
+using ECommerce.Api.Application.Dtos.Products;
 using ECommerce.Api.Domain;
-using ECommerce.Api.Dtos.Orders;
-using ECommerce.Api.Dtos.Products;
 
-namespace ECommerce.Api;
+namespace ECommerce.Api.Application.Mappings;
 
 public class MappingProfile : Profile
 {
@@ -11,8 +11,8 @@ public class MappingProfile : Profile
     {
         CreateMap<Product, GetProductResponse>();
         CreateMap<Order, GetOrderResponse>()
-        .ForMember(d => d.TotalPrice,
-        o => o.MapFrom(s => s.OrderItems.Sum(oi => oi.Price * oi.Quantity)));
+            .ForMember(d => d.TotalPrice,
+                o => o.MapFrom(s => s.OrderItems.Sum(oi => oi.Price * oi.Quantity)));
         CreateMap<OrderItem, GetOrderItemResponse>();
     }
 }
