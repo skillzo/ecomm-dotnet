@@ -1,9 +1,11 @@
 using AutoMapper;
+using ECommerce.Api.Application.Dtos;
 using ECommerce.Api.Application.Dtos.Orders;
 using ECommerce.Api.Application.Interfaces;
 using ECommerce.Api.Common;
 using ECommerce.Api.Domain;
 using ECommerce.Api.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Api.Application.Services;
@@ -119,19 +121,56 @@ public class OrderService : IOrderService
         return ServiceResponse<List<GetOrderResponse>>.Ok("Orders fetched successfully", response);
     }
 
-    public async Task<ServiceResponse<List<object>>> GetAllOrdersAsync()
+    public async Task<ServiceResponse<PagedResponse<OrderDto>>> GetAllOrdersAsync(GetAllParams request)
     {
-        var orders = await _dbContext.Orders
-            .Select(o => new
+        var query = _dbContext.Orders.AsQueryable();
+        var skip = (request.Page - 1) * request.PageSize;
+
+        if (!string.IsNullOrEmpty(request.Search))
+        {
+            query = query.Where(o => o.OrderItems
+            .Any(oi => EF.Functions.ILike(oi.Product.Name, $"%{request.Search}%")));
+        }
+
+        if (request.Status != null)
+        {
+            query = query.Where(o => o.Status == request.Status);
+        }
+
+
+        query = request.Sort?.ToLower() switch
+        {
+            "orderdate" => request.SortOrder == SortOrder.desc
+            ? query.OrderByDescending(o => o.OrderDate)
+            : query.OrderBy(o => o.OrderDate),
+
+
+            "status" => request.SortOrder == SortOrder.desc
+            ? query.OrderByDescending(o => o.Status)
+            : query.OrderBy(o => o.Status),
+
+
+            _ => query.OrderByDescending(o => o.OrderDate)
+        };
+
+
+
+
+        var orders = await query
+            .Skip(skip)
+            .Take(request.PageSize)
+            .Select(o => new OrderDto
             {
-                o.Id,
-                o.UserId,
+                Id = o.Id,
+                UserId = o.UserId,
                 Status = o.Status.ToString(),
-                o.OrderDate,
+                OrderDate = o.OrderDate,
             })
             .ToListAsync();
 
-        var response = orders.Cast<object>().ToList();
-        return ServiceResponse<List<object>>.Ok("Orders fetched successfully", response);
+        var totalCount = await query.CountAsync();
+        var pagedResponse = PagedResponse<OrderDto>.Create(orders, totalCount, skip, request.PageSize);
+        return ServiceResponse<PagedResponse<OrderDto>>
+        .Ok("Orders fetched successfully", pagedResponse);
     }
 }
