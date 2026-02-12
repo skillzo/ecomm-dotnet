@@ -1,6 +1,8 @@
+using ECommerce.Api.Application.Dtos;
 using ECommerce.Api.Application.Dtos.Orders;
 using ECommerce.Api.Application.Interfaces;
 using ECommerce.Api.Common;
+using ECommerce.Api.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +23,7 @@ public class OrdersController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [Authorize(Roles = nameof(Domain.UserRole.Customer))]
+    [Authorize(Roles = nameof(UserRole.Customer))]
     [HttpPost]
     public async Task<ActionResult<ServiceResponse<GetOrderResponse>>> CreateOrder([FromBody] CreateOrderRequest request)
     {
@@ -32,7 +34,7 @@ public class OrdersController : ControllerBase
         }
 
         var result = await _orderService.CreateOrderAsync(request, user.Id);
-        
+
         if (!result.Success)
         {
             return StatusCode(result.StatusCode, result);
@@ -43,13 +45,13 @@ public class OrdersController : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public async Task<ActionResult<ServiceResponse<List<object>>>> GetAllOrder()
+    public async Task<ActionResult<ServiceResponse<List<object>>>> GetAllOrder([FromQuery] GetAllParams request)
     {
-        var result = await _orderService.GetAllOrdersAsync();
+        var result = await _orderService.GetAllOrdersAsync(request);
         return Ok(result);
     }
 
-    [Authorize(Roles = nameof(Domain.UserRole.Customer))]
+    [Authorize(Roles = nameof(UserRole.Customer))]
     [HttpGet("my-orders")]
     public async Task<ActionResult<ServiceResponse<List<GetOrderResponse>>>> GetMyOrders()
     {

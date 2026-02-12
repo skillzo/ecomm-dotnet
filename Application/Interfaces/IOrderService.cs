@@ -1,3 +1,4 @@
+using ECommerce.Api.Application.Dtos;
 using ECommerce.Api.Application.Dtos.Orders;
 using ECommerce.Api.Common;
 
@@ -7,5 +8,5 @@ public interface IOrderService
 {
     Task<ServiceResponse<GetOrderResponse>> CreateOrderAsync(CreateOrderRequest request, Guid userId);
     Task<ServiceResponse<List<GetOrderResponse>>> GetMyOrdersAsync(Guid userId);
-    Task<ServiceResponse<List<object>>> GetAllOrdersAsync();
+    Task<ServiceResponse<PagedResponse<OrderDto>>> GetAllOrdersAsync(GetAllParams request);
 }
